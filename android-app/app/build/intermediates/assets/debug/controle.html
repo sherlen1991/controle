@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Controle Financeiro</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #f0f2f5;
+}
+
+/* 🔵 CABEÇALHO */
+header {
+  background: linear-gradient(135deg, #3498db, #2c3e50);
+  color: white;
+  text-align: center;
+  padding: 25px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+header p {
+  margin: 5px 0 0;
+  opacity: 0.8;
+}
+
+header .user-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+header .user-bar button {
+  padding: 8px 14px;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  cursor: pointer;
+}
+
+header .user-bar button:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* 📦 CONTAINER */
+.container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 10px;
+}
+
+/* 📅 ANO */
+.ano {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.usuarios-btn {
+  display: block;
+  margin: 0 auto 25px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.22);
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.usuarios-btn:hover {
+  background: rgba(255,255,255,0.32);
+}
+
+/* 🟦 GRID MESES */
+.meses {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+/* 🎴 CARD MES */
+.mes {
+  background: white;
+  padding: 25px;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+  color: #2c3e50;
+}
+
+.mes:hover {
+  transform: translateY(-5px);
+  background: #3498db;
+  color: white;
+}
+
+/* 📱 RESPONSIVO */
+@media (max-width: 700px) {
+  .meses {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Controle Financeiro</h1>
+  <p>Seu sistema pessoal de gestão</p>
+  <div class="user-bar">
+    <span>Usuário: <strong id="userDisplay"></strong></span>
+    <button onclick="logout()">Sair</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="ano">Ano: 2026</div>
+  <button id="usuariosBtn" class="usuarios-btn" onclick="verUsuarios()">Ver usuários cadastrados</button>
+
+  <div class="meses">
+
+    <div class="mes" onclick="abrir('Janeiro')">Janeiro</div>
+    <div class="mes" onclick="abrir('Fevereiro')">Feereiro</div>
+    <div class="mes" onclick="abrir('Março')">Março</div>
+    <div class="mes" onclick="abrir('Abril')">Abril</div>
+    <div class="mes" onclick="abrir('Maio')">Maio</div>
+    <div class="mes" onclick="abrir('Junho')">Junho</div>
+    <div class="mes" onclick="abrir('Julho')">Julho</div>
+    <div class="mes" onclick="abrir('Agosto')">Agosto</div>
+    <div class="mes" onclick="abrir('Setembro')">Setembro</div>
+    <div class="mes" onclick="abrir('Outubro')">Outubro</div>
+    <div class="mes" onclick="abrir('Novembro')">Novembro</div>
+    <div class="mes" onclick="abrir('Dezembro')">Dezembro</div>
+
+  </div>
+
+</div>
+
+<script>
+function abrir(mes) {
+  window.location.href = "mes.html?mes=" + mes;
+}
+
+function verUsuarios() {
+  window.location.href = 'usuarios.html';
+}
+
+function logout() {
+  sessionStorage.removeItem('controleUser');
+  window.location.href = 'index.html';
+}
+
+(function() {
+  const ownerUsername = 'sherlen';
+  const user = sessionStorage.getItem('controleUser');
+  if (!user) {
+    window.location.href = 'index.html';
+    return;
+  }
+  document.getElementById('userDisplay').innerText = user;
+  const usuariosBtn = document.getElementById('usuariosBtn');
+  if (usuariosBtn) {
+    usuariosBtn.style.display = user === ownerUsername ? 'inline-block' : 'none';
+  }
+})();
+</script>
+
+</body>
+</html>
