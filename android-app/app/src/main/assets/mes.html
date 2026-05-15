@@ -201,24 +201,6 @@ input, select, button {
       <div id="fundo" class="fundoBox"></div>
     </div>
 
-    <div class="card medicoCard">
-      <h3>Médico 🏥</h3>
-      <div class="infoBanco">
-        <img src="santander.png">
-        <span>sherlenalves26@hotmail.com</span>
-      </div>
-      <div id="medico" class="medicoBox"></div>
-    </div>
-
-    <div class="card lazerCard">
-      <h3>Lazer 🎉</h3>
-      <div class="infoBanco">
-        <img src="nubank.png">
-        <span>141102047-20</span>
-      </div>
-      <div id="lazer" class="lazerBox"></div>
-    </div>
-
   </div>
 
 </div>
@@ -384,14 +366,7 @@ function renderizar() {
 
  // 🔥 CÁLCULO EM CASCATA
 let fundoValor = saldoValor * 0.10;
-
-let restanteAposFundo = saldoValor - fundoValor;
-let medicoValor = restanteAposFundo * 0.10;
-
-let restanteAposMedico = restanteAposFundo - medicoValor;
-let lazerValor = restanteAposMedico * 0.10;
-
-let totalGeralValor = restanteAposMedico - lazerValor;
+let totalGeralValor = saldoValor - fundoValor;
 
   document.getElementById("entrada").innerText = formatar(ent);
   document.getElementById("saida").innerText = formatar(sai);
@@ -399,9 +374,8 @@ let totalGeralValor = restanteAposMedico - lazerValor;
   document.getElementById("totalGeral").innerText = formatar(totalGeralValor);
 
   document.getElementById("fundo").innerText = formatar(fundoValor);
-  document.getElementById("medico").innerText = formatar(medicoValor);
-  document.getElementById("lazer").innerText = formatar(lazerValor);
 }
+
 
 function gerarPDF() {
   const { jsPDF } = window.jspdf;
