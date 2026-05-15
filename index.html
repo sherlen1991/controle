@@ -130,8 +130,8 @@
     </form>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCX4RwXfPJ4xkhnua8dqMMUCgESKrZUURw",
@@ -150,7 +150,7 @@
         console.error('Erro ao inicializar Firebase:', err);
       }
     }
-    
+
     let db = null;
     try {
       db = firebase.firestore();
@@ -159,6 +159,28 @@
     }
     const ownerUsername = 'sherlen';
     const ownerPassword = '98346986';
+
+    async function fetchUsersFromFirebase() {
+      if (!db) return null;
+      try {
+        const doc = await db.collection('users').doc('data').get();
+        if (doc.exists) {
+          return doc.data().users || [];
+        }
+      } catch (err) {
+        console.log('Erro ao buscar usuários no Firebase:', err.message);
+      }
+      return null;
+    }
+
+    async function syncUsers() {
+      const remote = await fetchUsersFromFirebase();
+      if (remote && Array.isArray(remote)) {
+        localStorage.setItem('controleUsers', JSON.stringify(remote));
+        return remote;
+      }
+      return getUsers();
+    }
 
     function getUsers() {
       try {
@@ -180,36 +202,38 @@
       }
     }
 
-    function saveUsers(users) {
+    async function saveUsers(users) {
       localStorage.setItem('controleUsers', JSON.stringify(users));
       if (db) {
         try {
-          db.collection('users').doc('data').set({ users: users }, { merge: true });
+          await db.collection('users').doc('data').set({ users: users }, { merge: true });
         } catch (err) {
           console.log('Erro ao salvar no Firebase:', err.message);
         }
       }
     }
 
-    function initializeUsers() {
-      const users = getUsers();
+    async function initializeUsers() {
+      const users = await syncUsers();
       const ownerExists = users.some(u => u.username === ownerUsername);
       if (!ownerExists) {
-        users.push({ username: ownerUsername, password: ownerPassword });
-        saveUsers(users);
+        const updated = [...users, { username: ownerUsername, password: ownerPassword }];
+        await saveUsers(updated);
       }
     }
 
-    initializeUsers();
+    async function login(username, password) {
+      const users = await syncUsers();
+      return users.find(u => u.username === username && u.password === password);
+    }
 
-    document.getElementById('loginForm').addEventListener('submit', function(event) {
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
       const errorMsg = document.getElementById('errorMsg');
-      const users = getUsers();
-      const user = users.find(u => u.username === username && u.password === password);
 
+      const user = await login(username, password);
       if (user) {
         sessionStorage.setItem('controleUser', user.username);
         if (user.username === ownerUsername) {
@@ -222,14 +246,19 @@
       }
     });
 
-    const currentUser = sessionStorage.getItem('controleUser');
-    if (currentUser) {
-      if (currentUser === ownerUsername) {
-        window.location.href = 'usuarios.html';
-      } else {
-        window.location.href = 'controle.html';
+    (async function() {
+      await initializeUsers();
+      const currentUser = sessionStorage.getItem('controleUser');
+      if (currentUser) {
+        if (currentUser === ownerUsername) {
+          window.location.href = 'usuarios.html';
+        } else {
+          window.location.href = 'controle.html';
+        }
       }
-    }
+    })();
   </script>
+</body>
+</html>
 </body>
 </html>

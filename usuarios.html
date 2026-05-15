@@ -144,8 +144,8 @@
     </div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCX4RwXfPJ4xkhnua8dqMMUCgESKrZUURw",
@@ -164,16 +164,38 @@
         console.error('Erro ao inicializar Firebase:', err);
       }
     }
-    
+
     let db = null;
     try {
       db = firebase.firestore();
     } catch (err) {
       console.log('Firebase não disponível no momento');
     }
-    
+
     const ownerUsername = 'sherlen';
     const ownerPassword = '98346986';
+
+    async function fetchUsersFromFirebase() {
+      if (!db) return null;
+      try {
+        const doc = await db.collection('users').doc('data').get();
+        if (doc.exists) {
+          return doc.data().users || [];
+        }
+      } catch (err) {
+        console.log('Erro ao buscar usuários no Firebase:', err.message);
+      }
+      return null;
+    }
+
+    async function syncUsers() {
+      const remote = await fetchUsersFromFirebase();
+      if (remote && Array.isArray(remote)) {
+        localStorage.setItem('controleUsers', JSON.stringify(remote));
+        return remote;
+      }
+      return getUsers();
+    }
 
     function getUsers() {
       try {
@@ -195,11 +217,11 @@
       }
     }
 
-    function saveUsers(users) {
+    async function saveUsers(users) {
       localStorage.setItem('controleUsers', JSON.stringify(users));
       if (db) {
         try {
-          db.collection('users').doc('data').set({ users: users }, { merge: true });
+          await db.collection('users').doc('data').set({ users: users }, { merge: true });
         } catch (err) {
           console.log('Erro ao salvar no Firebase:', err.message);
         }
@@ -207,8 +229,6 @@
     }
 
     function cleanUsers() {
-      const users = getUsers();
-      const owner = users.find(u => u.username === ownerUsername);
       const result = [{ username: ownerUsername, password: ownerPassword }];
       saveUsers(result);
       return result;
@@ -290,7 +310,7 @@
       renderUserList();
     }
 
-    document.getElementById('cadastroForm').addEventListener('submit', function(event) {
+    document.getElementById('cadastroForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const username = document.getElementById('newUsername').value.trim();
       const password = document.getElementById('newPassword').value;
@@ -316,13 +336,14 @@
       window.location.href = 'index.html';
     }
 
-    (function() {
+    (async function() {
       const user = sessionStorage.getItem('controleUser');
       if (!user || user !== ownerUsername) {
         window.location.href = 'index.html';
         return;
       }
 
+      await syncUsers();
       cleanUsers();
       document.getElementById('userInfo').innerText = 'Logado como: ' + user;
       renderUserList();
