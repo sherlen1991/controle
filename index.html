@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Controle Financeiro</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1d84b5, #0b3141);
+      color: #fff;
+    }
+
+    .login-card {
+      width: 320px;
+      padding: 32px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      backdrop-filter: blur(12px);
+    }
+
+    .login-card h1 {
+      margin: 0 0 20px;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .login-card label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .login-card button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #2ecc71;
+      color: #063919;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .login-card button:hover {
+      background: #28b463;
+    }
+
+    .error {
+      color: #ffb3b3;
+      font-size: 14px;
+      min-height: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <h1>Acesse seu controle</h1>
+    <div class="error" id="errorMsg"></div>
+    <form id="loginForm">
+      <label for="username">Usuário</label>
+      <input type="text" id="username" name="username" autocomplete="username" required>
+
+      <label for="password">Senha</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+
+  <script>
+    const validUsername = 'admin';
+    const validPassword = 'senha123';
+
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (username === validUsername && password === validPassword) {
+        window.location.href = 'controle.html';
+      } else {
+        errorMsg.textContent = 'Usuário ou senha inválidos. Tente novamente.';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mês</title>
+
+<script src="jspdf.umd.min.js"></script>
+
+<style>
+body {
+  font-family: Arial;
+  margin: 0;
+  background: #f5f6fa;
+}
+
+header {
+  background: #3498db;
+  color: white;
+  text-align: center;
+  padding: 15px;
+}
+
+.topo {
+  position: sticky;
+  top: 0;
+  background: white;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.linhaTopo {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 10px;
+}
+
+.entradaCor { color: #2ecc71; }
+.saidaCor { color: #e74c3c; }
+.saldoCor { color: #3498db; }
+
+.totalGeralDestaque {
+  font-size: 22px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.caixa {
+  background: white;
+  width: 1100px;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.linha { display: flex; gap: 10px; }
+
+.colunas {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.coluna:nth-child(1),
+.coluna:nth-child(2) {
+  flex: 0.8;
+}
+
+.coluna:nth-child(3) {
+  flex: 1.4;
+}
+
+.item {
+  background: #fff;
+  padding: 12px;
+  margin-top: 10px;
+  border-left: 5px solid;
+  border-radius: 6px;
+}
+
+.entrada { border-color: #2ecc71; }
+.saida { border-color: #e74c3c; }
+
+.botoes {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.botoes button {
+  width: auto;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.infoBanco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.infoBanco img {
+  width: 70px;
+}
+
+.infoBanco span {
+  font-size: 14px;
+  color: #555;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 15px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.fundoCard { border-top: 4px solid #2ecc71; }
+.medicoCard { border-top: 4px solid #e74c3c; }
+.lazerCard { border-top: 4px solid #f39c12; }
+
+.fundoBox { background: #eafaf1; padding: 15px; border-radius: 8px; }
+.medicoBox { background: #fdecea; padding: 15px; border-radius: 8px; }
+.lazerBox { background: #fff4e6; padding: 15px; border-radius: 8px; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2 id="tituloMes"></h2>
+</header>
+
+<div class="topo">
+  <div class="linhaTopo">
+    <div><strong>Total de Entradas</strong> <span class="entradaCor" id="entrada">R$ 0,00</span></div>
+    <div><strong>Total de Saídas</strong> <span class="saidaCor" id="saida">R$ 0,00</span></div>
+    <div><strong>Saldo</strong> <span class="saldoCor" id="saldo">R$ 0,00</span></div>
+  </div>
+
+  <div class="linhaTopo">
+    <div><strong>Total Geral</strong> <span id="totalGeral" class="totalGeralDestaque">R$ 0,00</span></div>
+  </div>
+</div>
+
+<main>
+<div class="caixa">
+
+<select id="tipo">
+  <option value="entrada">Entrada</option>
+  <option value="saida">Saída</option>
+</select>
+
+<div class="linha">
+  <input type="text" id="descricao" placeholder="Descrição">
+  <input type="number" id="valor" placeholder="Valor">
+</div>
+
+<button onclick="adicionar()">Adicionar</button>
+<button onclick="gerarPDF()">📄 Baixar PDF</button>
+
+<div class="colunas">
+
+  <div class="coluna">
+    <h3>Entradas</h3>
+    <div id="listaEntradas"></div>
+  </div>
+
+  <div class="coluna">
+    <h3>Saídas</h3>
+    <div id="listaSaidas"></div>
+  </div>
+
+  <div class="coluna">
+
+    <div class="card fundoCard">
+      <h3>Fundo 💰</h3>
+      <div class="infoBanco">
+        <img src="itauon.png">
+        <span>21995383666</span>
+      </div>
+      <div id="fundo" class="fundoBox"></div>
+    </div>
+
+    <div class="card medicoCard">
+      <h3>Médico 🏥</h3>
+      <div class="infoBanco">
+        <img src="santander.png">
+        <span>sherlenalves26@hotmail.com</span>
+      </div>
+      <div id="medico" class="medicoBox"></div>
+    </div>
+
+    <div class="card lazerCard">
+      <h3>Lazer 🎉</h3>
+      <div class="infoBanco">
+        <img src="nubank.png">
+        <span>141102047-20</span>
+      </div>
+      <div id="lazer" class="lazerBox"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<button onclick="voltar()">Voltar</button>
+
+</div>
+</main>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const mes = params.get("mes") || "Janeiro";
+document.getElementById("tituloMes").innerText = mes;
+
+let chave = "dados_" + mes;
+let lista = JSON.parse(localStorage.getItem(chave)) || [];
+
+function formatar(v) {
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function numeroSeguro(v) {
+  return Number(v) || 0;
+}
+
+function salvar() {
+  localStorage.setItem(chave, JSON.stringify(lista));
+}
+
+function adicionar() {
+  const tipo = document.getElementById("tipo").value;
+  const valor = numeroSeguro(document.getElementById("valor").value);
+  const descricao = document.getElementById("descricao").value.trim();
+
+  if (!descricao || valor <= 0) return alert("Preencha corretamente");
+
+  lista.push({ tipo, valor, descricao });
+  salvar();
+  renderizar();
+
+  document.getElementById("valor").value = "";
+  document.getElementById("descricao").value = "";
+}
+
+function excluir(i) {
+  lista.splice(i, 1);
+  salvar();
+  renderizar();
+}
+
+function editar(i) {
+  let novoValor = prompt("Novo valor:", lista[i].valor);
+  let novaDesc = prompt("Nova descrição:", lista[i].descricao);
+
+  novoValor = numeroSeguro(novoValor);
+  if (!novaDesc || novoValor <= 0) return alert("Valor inválido");
+
+  lista[i].valor = novoValor;
+  lista[i].descricao = novaDesc;
+
+  salvar();
+  renderizar();
+}
+
+function renderizar() {
+  let ent = 0, sai = 0;
+
+  const listaEntradasEl = document.getElementById("listaEntradas");
+  const listaSaidasEl = document.getElementById("listaSaidas");
+
+  listaEntradasEl.innerHTML = "";
+  listaSaidasEl.innerHTML = "";
+
+  lista.forEach((item, i) => {
+    let div = document.createElement("div");
+    div.className = "item " + item.tipo;
+
+    div.innerHTML = `
+      <b>${item.descricao}</b><br>
+      ${formatar(item.valor)}
+      <div class="botoes">
+        <button onclick="editar(${i})">✏</button>
+        <button onclick="excluir(${i})">❌</button>
+      </div>
+    `;
+
+    if (item.tipo === "entrada") {
+      ent += item.valor;
+      listaEntradasEl.appendChild(div);
+    } else {
+      sai += item.valor;
+      listaSaidasEl.appendChild(div);
+    }
+  });
+
+  let saldoValor = ent - sai;
+
+ // 🔥 CÁLCULO EM CASCATA
+let fundoValor = saldoValor * 0.10;
+
+let restanteAposFundo = saldoValor - fundoValor;
+let medicoValor = restanteAposFundo * 0.10;
+
+let restanteAposMedico = restanteAposFundo - medicoValor;
+let lazerValor = restanteAposMedico * 0.10;
+
+let totalGeralValor = restanteAposMedico - lazerValor;
+
+  document.getElementById("entrada").innerText = formatar(ent);
+  document.getElementById("saida").innerText = formatar(sai);
+  document.getElementById("saldo").innerText = formatar(saldoValor);
+  document.getElementById("totalGeral").innerText = formatar(totalGeralValor);
+
+  document.getElementById("fundo").innerText = formatar(fundoValor);
+  document.getElementById("medico").innerText = formatar(medicoValor);
+  document.getElementById("lazer").innerText = formatar(lazerValor);
+}
+
+function gerarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  let y = 15;
+
+  doc.text(`Relatório do mês ${mes}`, 10, y);
+  y += 10;
+
+  doc.text("Entradas: " + document.getElementById("entrada").innerText, 10, y); y += 6;
+  doc.text("Saídas: " + document.getElementById("saida").innerText, 10, y); y += 6;
+  doc.text("Saldo: " + document.getElementById("saldo").innerText, 10, y); y += 6;
+
+  doc.save(`relatorio_${mes}.pdf`);
+}
+
+function voltar() {
+  window.location.href = "index.html";
+}
+// 🔥 ENTER PARA ADICIONAR
+document.getElementById("descricao").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    adicionar();
+  }
+});
+
+document.getElementById("valor").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    adicionar();
+  }
+});
+renderizar();
+</script>
+
+</body>
+</html>

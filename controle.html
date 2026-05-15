@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Controle Financeiro</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #f0f2f5;
+}
+
+/* 🔵 CABEÇALHO */
+header {
+  background: linear-gradient(135deg, #3498db, #2c3e50);
+  color: white;
+  text-align: center;
+  padding: 25px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+header p {
+  margin: 5px 0 0;
+  opacity: 0.8;
+}
+
+/* 📦 CONTAINER */
+.container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 10px;
+}
+
+/* 📅 ANO */
+.ano {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* 🟦 GRID MESES */
+.meses {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+/* 🎴 CARD MES */
+.mes {
+  background: white;
+  padding: 25px;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+  color: #2c3e50;
+}
+
+.mes:hover {
+  transform: translateY(-5px);
+  background: #3498db;
+  color: white;
+}
+
+/* 📱 RESPONSIVO */
+@media (max-width: 700px) {
+  .meses {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Controle Financeiro</h1>
+  <p>Seu sistema pessoal de gestão</p>
+</header>
+
+<div class="container">
+
+  <div class="ano">Ano: 2026</div>
+
+  <div class="meses">
+
+    <div class="mes" onclick="abrir('Janeiro')">Jneiro</div>
+    <div class="mes" onclick="abrir('Fevereiro')">Fevereiro</div>
+    <div class="mes" onclick="abrir('Março')">Março</div>
+    <div class="mes" onclick="abrir('Abril')">Abril</div>
+    <div class="mes" onclick="abrir('Maio')">Maio</div>
+    <div class="mes" onclick="abrir('Junho')">Junho</div>
+    <div class="mes" onclick="abrir('Julho')">Julho</div>
+    <div class="mes" onclick="abrir('Agosto')">Agosto</div>
+    <div class="mes" onclick="abrir('Setembro')">Setembro</div>
+    <div class="mes" onclick="abrir('Outubro')">Outubro</div>
+    <div class="mes" onclick="abrir('Novembro')">Novembro</div>
+    <div class="mes" onclick="abrir('Dezembro')">Dezembro</div>
+
+  </div>
+
+</div>
+
+<script>
+function abrir(mes) {
+  window.location.href = "mes.html?mes=" + mes;
+}
+</script>
+
+</body>
+</html>
