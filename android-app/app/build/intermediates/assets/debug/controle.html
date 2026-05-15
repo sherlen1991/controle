@@ -237,11 +237,34 @@
       <h1>Controle mensal</h1>
       <p>Selecione o mês e acompanhe seu caixa com clareza. Veja saldo, entradas e saídas com poucos cliques.</p>
     </div>
-    <div class="actions">
-      <button class="button secondary" onclick="logout()">Sair</button>
-      <button id="updateBtn" class="button secondary" onclick="atualizar()" style="display:none;">Atualizar app</button>
-      <button id="usuariosBtn" class="button primary" onclick="verUsuarios()">Ver usuários</button>
-    </div>
+  <div class="actions">
+  <button class="button secondary" onclick="logout()">Sair</button>
+  <button id="updateBtn" class="button secondary" onclick="atualizar()">Atualizar app</button>
+  <button id="usuariosBtn" class="button primary" onclick="verUsuarios()">Ver usuários</button>
+</div>
+
+<script>
+async function atualizar() {
+  try {
+    // Chame sua API hospedada no Vercel
+    const resposta = await fetch("https://seu-projeto.vercel.app/api/textos");
+    if (!resposta.ok) throw new Error("Erro ao buscar dados");
+
+    const dados = await resposta.json();
+
+    // Atualiza a interface com os dados novos
+    // Exemplo: supondo que você tenha elementos com esses IDs
+    document.getElementById("mensagem").innerText = dados.mensagem;
+    document.getElementById("versao").innerText = "Versão: " + dados.versao;
+
+    alert("Informações atualizadas com sucesso!");
+  } catch (erro) {
+    console.error("Erro:", erro);
+    alert("Não foi possível atualizar os dados.");
+  }
+}
+</script>
+
   </section>
 
   <div class="status-card">
