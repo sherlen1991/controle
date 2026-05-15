@@ -29,6 +29,28 @@ header p {
   opacity: 0.8;
 }
 
+header .user-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+header .user-bar button {
+  padding: 8px 14px;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  cursor: pointer;
+}
+
+header .user-bar button:hover {
+  background: rgba(255,255,255,0.25);
+}
+
 /* 📦 CONTAINER */
 .container {
   max-width: 900px;
@@ -43,6 +65,23 @@ header p {
   margin-bottom: 20px;
   font-weight: bold;
   color: #2c3e50;
+}
+
+.usuarios-btn {
+  display: block;
+  margin: 0 auto 25px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.22);
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.usuarios-btn:hover {
+  background: rgba(255,255,255,0.32);
 }
 
 /* 🟦 GRID MESES */
@@ -85,11 +124,16 @@ header p {
 <header>
   <h1>Controle Financeiro</h1>
   <p>Seu sistema pessoal de gestão</p>
+  <div class="user-bar">
+    <span>Usuário: <strong id="userDisplay"></strong></span>
+    <button onclick="logout()">Sair</button>
+  </div>
 </header>
 
 <div class="container">
 
   <div class="ano">Ano: 2026</div>
+  <button class="usuarios-btn" onclick="verUsuarios()">Ver usuários cadastrados</button>
 
   <div class="meses">
 
@@ -114,6 +158,24 @@ header p {
 function abrir(mes) {
   window.location.href = "mes.html?mes=" + mes;
 }
+
+function verUsuarios() {
+  window.location.href = 'usuarios.html';
+}
+
+function logout() {
+  sessionStorage.removeItem('controleUser');
+  window.location.href = 'index.html';
+}
+
+(function() {
+  const user = sessionStorage.getItem('controleUser');
+  if (!user) {
+    window.location.href = 'index.html';
+    return;
+  }
+  document.getElementById('userDisplay').innerText = user;
+})();
 </script>
 
 </body>

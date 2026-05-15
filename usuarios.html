@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Usuários Cadastrados</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1d84b5, #0b3141);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .container {
+    width: min(760px, 100%);
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    padding: 28px;
+    backdrop-filter: blur(14px);
+  }
+
+  h1 {
+    margin: 0 0 10px;
+    font-size: 28px;
+    text-align: center;
+  }
+
+  p {
+    margin: 0 0 24px;
+    text-align: center;
+    opacity: 0.9;
+  }
+
+  .user-list-box {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 14px;
+    padding: 20px;
+  }
+
+  .user-item {
+    background: rgba(255,255,255,0.08);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    font-size: 16px;
+  }
+
+  .empty {
+    text-align: center;
+    opacity: 0.85;
+    padding: 24px 0;
+  }
+
+  .button-row {
+    margin-top: 24px;
+    text-align: center;
+  }
+
+  button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    background: #2ecc71;
+    color: #063919;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  button:hover {
+    background: #28b463;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Usuários Cadastrados</h1>
+    <p id="userInfo"></p>
+
+    <div class="user-list-box">
+      <div id="listaUsuarios"></div>
+      <div id="noUsers" class="empty">Nenhum usuário cadastrado.</div>
+    </div>
+
+    <div class="button-row">
+      <button onclick="voltar()">Voltar</button>
+    </div>
+  </div>
+
+  <script>
+    const ownerUsername = 'sherlen';
+    const user = sessionStorage.getItem('controleUser');
+    if (!user || user !== ownerUsername) {
+      window.location.href = 'index.html';
+    }
+
+    document.getElementById('userInfo').innerText = 'Logado como: ' + user;
+
+    function carregarUsuarios() {
+      let usuarios = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem('controleUsers') || '[]');
+        usuarios = Array.isArray(stored) ? stored : [];
+      } catch {
+        usuarios = [];
+      }
+
+      const listaEl = document.getElementById('listaUsuarios');
+      const emptyEl = document.getElementById('noUsers');
+
+      listaEl.innerHTML = '';
+      if (!usuarios.length) {
+        emptyEl.style.display = 'block';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      usuarios.forEach((nome) => {
+        const item = document.createElement('div');
+        item.className = 'user-item';
+        item.textContent = nome;
+        listaEl.appendChild(item);
+      });
+    }
+
+    function voltar() {
+      window.location.href = 'controle.html';
+    }
+
+    carregarUsuarios();
+  </script>
+</body>
+</html>

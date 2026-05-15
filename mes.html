@@ -145,6 +145,7 @@ input, select, button {
 
 <header>
   <h2 id="tituloMes"></h2>
+  <p id="userInfo" style="margin: 5px 0 0; opacity: 0.9;"></p>
 </header>
 
 <div class="topo">
@@ -228,9 +229,17 @@ input, select, button {
 <script>
 const params = new URLSearchParams(window.location.search);
 const mes = params.get("mes") || "Janeiro";
-document.getElementById("tituloMes").innerText = mes;
+const user = sessionStorage.getItem('controleUser');
+if (!user) {
+  window.location.href = 'index.html';
+}
 
-let chave = "dados_" + mes;
+document.getElementById("tituloMes").innerText = mes;
+if (user) {
+  document.getElementById('userInfo').innerText = 'Usuário: ' + user;
+}
+
+let chave = `dados_${user}_${mes}`;
 let lista = JSON.parse(localStorage.getItem(chave)) || [];
 
 function formatar(v) {

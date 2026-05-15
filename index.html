@@ -111,8 +111,24 @@
   </div>
 
   <script>
-    const validUsername = 'sherlen';
+    const ownerUsername = 'sherlen';
+    const validUsername = ownerUsername;
     const validPassword = '98346986';
+
+    function initializeUsers() {
+      try {
+        const stored = JSON.parse(localStorage.getItem('controleUsers') || '[]');
+        const users = Array.isArray(stored) ? stored : [];
+        if (!users.includes(ownerUsername)) {
+          users.push(ownerUsername);
+          localStorage.setItem('controleUsers', JSON.stringify(users));
+        }
+      } catch {
+        localStorage.setItem('controleUsers', JSON.stringify([ownerUsername]));
+      }
+    }
+
+    initializeUsers();
 
     document.getElementById('loginForm').addEventListener('submit', function(event) {
       event.preventDefault();
@@ -121,11 +137,16 @@
       const errorMsg = document.getElementById('errorMsg');
 
       if (username === validUsername && password === validPassword) {
+        sessionStorage.setItem('controleUser', validUsername);
         window.location.href = 'controle.html';
       } else {
         errorMsg.textContent = 'Usuário ou senha inválidos. Tente novamente.';
       }
     });
+
+    if (sessionStorage.getItem('controleUser')) {
+      window.location.href = 'controle.html';
+    }
   </script>
 </body>
 </html>
