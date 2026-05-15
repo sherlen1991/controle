@@ -157,8 +157,21 @@
       measurementId: "G-3LQ2X9533Q"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    try {
+      firebase.initializeApp(firebaseConfig);
+    } catch (err) {
+      if (!err.message.includes('duplicate-app')) {
+        console.error('Erro ao inicializar Firebase:', err);
+      }
+    }
+    
+    let db = null;
+    try {
+      db = firebase.firestore();
+    } catch (err) {
+      console.log('Firebase não disponível no momento');
+    }
+    
     const ownerUsername = 'sherlen';
     const ownerPassword = '98346986';
 
@@ -184,10 +197,12 @@
 
     function saveUsers(users) {
       localStorage.setItem('controleUsers', JSON.stringify(users));
-      try {
-        db.collection('users').doc('data').set({ users: users }, { merge: true });
-      } catch (err) {
-        console.log('Firebase não disponível:', err.message);
+      if (db) {
+        try {
+          db.collection('users').doc('data').set({ users: users }, { merge: true });
+        } catch (err) {
+          console.log('Erro ao salvar no Firebase:', err.message);
+        }
       }
     }
 

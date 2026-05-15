@@ -239,8 +239,20 @@ const firebaseConfig = {
   measurementId: "G-3LQ2X9533Q"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+try {
+  firebase.initializeApp(firebaseConfig);
+} catch (err) {
+  if (!err.message.includes('duplicate-app')) {
+    console.error('Erro ao inicializar Firebase:', err);
+  }
+}
+
+let db = null;
+try {
+  db = firebase.firestore();
+} catch (err) {
+  console.log('Firebase não disponível no momento');
+}
 
 const params = new URLSearchParams(window.location.search);
 const mes = params.get("mes") || "Janeiro";
@@ -268,17 +280,23 @@ function numeroSeguro(v) {
 function salvar() {
   localStorage.setItem(chave, JSON.stringify(lista));
   
-  try {
-    db.collection('usuarios').doc(user).collection('meses').doc(mes).set({ 
-      dados: lista,
-      ultimaAtualizacao: new Date().toISOString()
-    });
-  } catch (err) {
-    console.log('Firebase não disponível:', err.message);
+  if (db) {
+    try {
+      db.collection('usuarios').doc(user).collection('meses').doc(mes).set({ 
+        dados: lista,
+        ultimaAtualizacao: new Date().toISOString()
+      });
+    } catch (err) {
+      console.log('Erro ao salvar no Firebase:', err.message);
+    }
   }
 }
 
 function carregarDoFirestore() {
+  if (!db) {
+    console.log('Firebase não disponível');
+    return;
+  }
   try {
     db.collection('usuarios').doc(user).collection('meses').doc(mes).get()
       .then(doc => {
