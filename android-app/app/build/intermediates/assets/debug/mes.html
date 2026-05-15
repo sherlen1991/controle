@@ -513,8 +513,12 @@ function renderizar() {
 }
 
 function gerarPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const jsPDFConstructor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || (window.jsPDF && window.jsPDF.default);
+  if (!jsPDFConstructor) {
+    alert('Erro: biblioteca jsPDF não carregada.');
+    return;
+  }
+  const doc = new jsPDFConstructor({ unit: 'pt', format: 'a4' });
   let y = 40;
   doc.setFontSize(16);
   doc.text(`Relatório do mês ${mes}`, 40, y);

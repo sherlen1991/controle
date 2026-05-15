@@ -282,7 +282,7 @@ function logout() {
 function buildMonths() {
   const grid = document.getElementById('monthGrid');
   grid.innerHTML = '';
-  const current = new Date().getMonth();
+  const current = 0; // janeiro deve ser o mês padrão mostrado ao carregar
   months.forEach((mes, index) => {
     const card = document.createElement('div');
     card.className = 'month-card' + (index === current ? ' active' : '');
@@ -299,7 +299,7 @@ function buildMonths() {
     return;
   }
   document.getElementById('userDisplay').innerText = user;
-  document.getElementById('currentMonth').innerText = months[new Date().getMonth()];
+  document.getElementById('currentMonth').innerText = months[0];
   document.getElementById('yearDisplay').innerText = new Date().getFullYear();
   const btn = document.getElementById('usuariosBtn');
   if (btn) {

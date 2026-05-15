@@ -239,6 +239,7 @@
     </div>
     <div class="actions">
       <button class="button secondary" onclick="logout()">Sair</button>
+      <button id="updateBtn" class="button secondary" onclick="atualizar()" style="display:none;">Atualizar app</button>
       <button id="usuariosBtn" class="button primary" onclick="verUsuarios()">Ver usuários</button>
     </div>
   </section>
@@ -270,6 +271,10 @@ function abrir(mes) {
   window.location.href = `mes.html?mes=${encodeURIComponent(mes)}`;
 }
 
+function atualizar() {
+  location.reload();
+}
+
 function verUsuarios() {
   window.location.href = 'usuarios.html';
 }
@@ -282,7 +287,7 @@ function logout() {
 function buildMonths() {
   const grid = document.getElementById('monthGrid');
   grid.innerHTML = '';
-  const current = new Date().getMonth();
+  const current = 0; // janeiro deve ser o mês padrão mostrado ao carregar
   months.forEach((mes, index) => {
     const card = document.createElement('div');
     card.className = 'month-card' + (index === current ? ' active' : '');
@@ -299,11 +304,15 @@ function buildMonths() {
     return;
   }
   document.getElementById('userDisplay').innerText = user;
-  document.getElementById('currentMonth').innerText = months[new Date().getMonth()];
+  document.getElementById('currentMonth').innerText = months[0];
   document.getElementById('yearDisplay').innerText = new Date().getFullYear();
   const btn = document.getElementById('usuariosBtn');
   if (btn) {
     btn.style.display = user === ownerUsername ? 'inline-flex' : 'none';
+  }
+  const updateBtn = document.getElementById('updateBtn');
+  if (updateBtn) {
+    updateBtn.style.display = user === ownerUsername ? 'inline-flex' : 'none';
   }
   buildMonths();
 })();
