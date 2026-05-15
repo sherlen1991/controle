@@ -306,11 +306,19 @@
     }
 
     function excluirUsuario(username) {
-      if (!confirm('Tem certeza que deseja excluir o usuário ' + username + '?')) return;
-      let users = getUsers();
-      users = users.filter(u => u.username !== username);
-      saveUsers(users);
-      renderUserList();
+      if (!confirm('Tem certeza que deseja excluir o usuário ' + username + '?')) {
+        return;
+      }
+
+      try {
+        let users = getUsers();
+        users = users.filter(u => u.username !== username);
+        saveUsers(users);
+        renderUserList();
+      } catch (e) {
+        console.error('Erro ao excluir usuário:', e);
+        alert('Erro ao excluir usuário.');
+      }
     }
 
     document.getElementById('cadastroForm').addEventListener('submit', async function(event) {

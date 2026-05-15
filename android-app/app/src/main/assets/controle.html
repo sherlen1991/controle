@@ -263,16 +263,25 @@
 
   <div class="footer-note">Acesse cada mês para ver o relatório detalhado e gerar PDF de forma rápida.</div>
 </main>
-<script>
+  <script>
 const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const ownerUsername = 'sherlen';
+
 
 function abrir(mes) {
   window.location.href = `mes.html?mes=${encodeURIComponent(mes)}`;
 }
 
-function atualizar() {
-  location.reload();
+async function atualizar() {
+  try {
+    // Força atualização das páginas locais (assets) no WebView
+    // e reaplica o cache removendo parâmetros.
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', Date.now());
+    window.location.href = url.toString();
+  } catch (e) {
+    location.reload();
+  }
 }
 
 function verUsuarios() {
