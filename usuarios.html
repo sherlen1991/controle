@@ -117,6 +117,11 @@
 </style>
 </head>
 <body>
+  <!-- Backdrop + root da modal (compatível com WebView) -->
+  <div id="modalBackdrop" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:9999;">
+    <div id="modalRoot"></div>
+  </div>
+
   <div class="container">
     <h1>Cadastro de Usuários</h1>
     <p id="userInfo"></p>
@@ -294,32 +299,88 @@
       return true;
     }
 
+    // --- Modal simple (compatível com WebView) ---
+    function showModal(html, { onConfirm } = {}) {
+      const modalRoot = document.getElementById('modalRoot');
+      if (!modalRoot) return;
+
+      modalRoot.innerHTML = html;
+
+      const close = () => {
+        const backdrop = document.getElementById('modalBackdrop');
+        if (backdrop) backdrop.style.display = 'none';
+      };
+
+      const backdrop = document.getElementById('modalBackdrop');
+      if (backdrop) backdrop.style.display = 'flex';
+
+      const confirmBtn = document.getElementById('modalConfirm');
+      if (confirmBtn && typeof onConfirm === 'function') {
+        confirmBtn.onclick = () => {
+          onConfirm();
+          close();
+        };
+      }
+
+      const cancelBtn = document.getElementById('modalCancel');
+      if (cancelBtn) cancelBtn.onclick = () => close();
+    }
+
     function alterarSenha(username) {
-      const newPassword = prompt('Digite a nova senha para ' + username + ':');
-      if (!newPassword) return;
-      const users = getUsers();
-      const user = users.find(u => u.username === username);
-      if (!user) return;
-      user.password = newPassword;
-      saveUsers(users);
-      alert('Senha alterada com sucesso.');
+      showModal(`
+        <div style="padding:18px; background:#fff; border-radius:14px; width:min(520px, 92vw);">
+          <div style="font-weight:800; font-size:18px; margin-bottom:10px; color:#102a43;">Alterar senha</div>
+          <div style="color:#64748b; font-size:14px; margin-bottom:12px;">Usuário: <strong>${username}</strong></div>
+          <label style="display:block; color:#102a43; font-size:14px; margin-bottom:6px;">Nova senha</label>
+          <input id="modalInputPassword" type="password" style="width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(15,23,42,0.2); outline:none;" autofocus />
+          <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+            <button id="modalCancel" type="button" style="padding:10px 14px; border-radius:12px; border:1px solid rgba(15,23,42,0.15); background:#f1f5f9; cursor:pointer; font-weight:700;">Cancelar</button>
+            <button id="modalConfirm" type="button" style="padding:10px 14px; border-radius:12px; border:none; background:#2ecc71; color:#063919; cursor:pointer; font-weight:900;">Salvar</button>
+          </div>
+        </div>
+      `, {
+        onConfirm: () => {
+          const input = document.getElementById('modalInputPassword');
+          const newPassword = (input && input.value ? input.value : '').trim();
+          if (!newPassword) {
+            alert('Digite uma senha.');
+            return;
+          }
+          const users = getUsers();
+          const user = users.find(u => u.username === username);
+          if (!user) return;
+          user.password = newPassword;
+          saveUsers(users);
+          alert('Senha alterada com sucesso.');
+          renderUserList();
+        }
+      });
     }
 
     function excluirUsuario(username) {
-      if (!confirm('Tem certeza que deseja excluir o usuário ' + username + '?')) {
-        return;
-      }
-
-      try {
-        let users = getUsers();
-        users = users.filter(u => u.username !== username);
-        saveUsers(users);
-        renderUserList();
-        alert('Usuário excluído com sucesso.');
-      } catch (e) {
-        console.error('Erro ao excluir usuário:', e);
-        alert('Erro ao excluir usuário. Verifique o console/armazenamento.');
-      }
+      showModal(`
+        <div style="padding:18px; background:#fff; border-radius:14px; width:min(520px, 92vw);">
+          <div style="font-weight:900; font-size:18px; margin-bottom:10px; color:#102a43;">Excluir usuário</div>
+          <div style="color:#64748b; font-size:14px; margin-bottom:16px;">Tem certeza que deseja excluir <strong>${username}</strong>?</div>
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button id="modalCancel" type="button" style="padding:10px 14px; border-radius:12px; border:1px solid rgba(15,23,42,0.15); background:#f1f5f9; cursor:pointer; font-weight:700;">Cancelar</button>
+            <button id="modalConfirm" type="button" style="padding:10px 14px; border-radius:12px; border:none; background:#e74c3c; color:#fff; cursor:pointer; font-weight:900;">Excluir</button>
+          </div>
+        </div>
+      `, {
+        onConfirm: () => {
+          try {
+            let users = getUsers();
+            users = users.filter(u => u.username !== username);
+            saveUsers(users);
+            renderUserList();
+            alert('Usuário excluído com sucesso.');
+          } catch (e) {
+            console.error('Erro ao excluir usuário:', e);
+            alert('Erro ao excluir usuário.');
+          }
+        }
+      });
     }
 
     document.getElementById('cadastroForm').addEventListener('submit', async function(event) {
