@@ -16,13 +16,15 @@
     }
 
     .login-card {
-      width: min(420px, 90vw);
+      width: min(420px, calc(100% - 40px));
       padding: 36px;
+      margin: 0 auto;
       background: rgba(255,255,255,0.16);
       border: 1px solid rgba(255,255,255,0.25);
       border-radius: 18px;
       box-shadow: 0 24px 60px rgba(0,0,0,0.28);
       backdrop-filter: blur(14px);
+      box-sizing: border-box;
     }
 
     .login-card h1 {
@@ -48,6 +50,12 @@
       background: rgba(255,255,255,0.18);
       color: #fff;
       font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    .login-card form {
+      display: grid;
+      gap: 16px;
     }
 
     .login-card button {
