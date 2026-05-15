@@ -130,7 +130,21 @@
     </form>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"></script>
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCX4RwXfPJ4xkhnua8dqMMUCgESKrZUURw",
+      authDomain: "controle-1fdd8.firebaseapp.com",
+      projectId: "controle-1fdd8",
+      storageBucket: "controle-1fdd8.firebasestorage.app",
+      messagingSenderId: "335934523012",
+      appId: "1:335934523012:web:84df1abfc9d2a2734a24d1",
+      measurementId: "G-3LQ2X9533Q"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
     const ownerUsername = 'sherlen';
     const ownerPassword = '98346986';
 
@@ -156,6 +170,11 @@
 
     function saveUsers(users) {
       localStorage.setItem('controleUsers', JSON.stringify(users));
+      try {
+        db.collection('users').doc('data').set({ users: users }, { merge: true });
+      } catch (err) {
+        console.log('Firebase não disponível:', err.message);
+      }
     }
 
     function initializeUsers() {

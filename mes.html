@@ -5,6 +5,8 @@
 <title>Mês</title>
 
 <script src="jspdf.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"></script>
 
 <style>
 body {
@@ -227,6 +229,19 @@ input, select, button {
 </main>
 
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCX4RwXfPJ4xkhnua8dqMMUCgESKrZUURw",
+  authDomain: "controle-1fdd8.firebaseapp.com",
+  projectId: "controle-1fdd8",
+  storageBucket: "controle-1fdd8.firebasestorage.app",
+  messagingSenderId: "335934523012",
+  appId: "1:335934523012:web:84df1abfc9d2a2734a24d1",
+  measurementId: "G-3LQ2X9533Q"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 const params = new URLSearchParams(window.location.search);
 const mes = params.get("mes") || "Janeiro";
 const user = sessionStorage.getItem('controleUser');
@@ -252,6 +267,33 @@ function numeroSeguro(v) {
 
 function salvar() {
   localStorage.setItem(chave, JSON.stringify(lista));
+  
+  try {
+    db.collection('usuarios').doc(user).collection('meses').doc(mes).set({ 
+      dados: lista,
+      ultimaAtualizacao: new Date().toISOString()
+    });
+  } catch (err) {
+    console.log('Firebase não disponível:', err.message);
+  }
+}
+
+function carregarDoFirestore() {
+  try {
+    db.collection('usuarios').doc(user).collection('meses').doc(mes).get()
+      .then(doc => {
+        if (doc.exists) {
+          lista = doc.data().dados || [];
+          localStorage.setItem(chave, JSON.stringify(lista));
+          renderizar();
+        }
+      })
+      .catch(err => {
+        console.log('Erro ao carregar:', err.message);
+      });
+  } catch (err) {
+    console.log('Firebase não disponível:', err.message);
+  }
 }
 
 function adicionar() {
@@ -360,7 +402,7 @@ function gerarPDF() {
 }
 
 function voltar() {
-  window.location.href = "index.html";
+  window.location.href = "controle.html";
 }
 // 🔥 ENTER PARA ADICIONAR
 document.getElementById("descricao").addEventListener("keypress", function(e) {
@@ -374,6 +416,8 @@ document.getElementById("valor").addEventListener("keypress", function(e) {
     adicionar();
   }
 });
+
+carregarDoFirestore();
 renderizar();
 </script>
 
