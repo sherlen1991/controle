@@ -206,13 +206,12 @@
       }
     }
 
-    function initializeUsers() {
+    function cleanUsers() {
       const users = getUsers();
-      const ownerExists = users.some(u => u.username === ownerUsername);
-      if (!ownerExists) {
-        users.push({ username: ownerUsername, password: ownerPassword });
-        saveUsers(users);
-      }
+      const owner = users.find(u => u.username === ownerUsername);
+      const result = [{ username: ownerUsername, password: ownerPassword }];
+      saveUsers(result);
+      return result;
     }
 
     function renderUserList() {
@@ -230,7 +229,29 @@
       users.forEach((user) => {
         const item = document.createElement('div');
         item.className = 'user-item';
-        item.innerHTML = `<span>${user.username}</span><span>${user.username === ownerUsername ? 'Proprietário' : 'Acesso'}</span>`;
+
+        const info = document.createElement('div');
+        info.innerHTML = `<strong>${user.username}</strong> <span style="opacity:0.8; margin-left:10px;">${user.username === ownerUsername ? 'Proprietário' : 'Acesso'}</span>`;
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '8px';
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Alterar senha';
+        editBtn.onclick = () => alterarSenha(user.username);
+        actions.appendChild(editBtn);
+
+        if (user.username !== ownerUsername) {
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'danger';
+          deleteBtn.textContent = 'Excluir';
+          deleteBtn.onclick = () => excluirUsuario(user.username);
+          actions.appendChild(deleteBtn);
+        }
+
+        item.appendChild(info);
+        item.appendChild(actions);
         listaEl.appendChild(item);
       });
     }
@@ -248,6 +269,25 @@
       users.push({ username, password });
       saveUsers(users);
       return true;
+    }
+
+    function alterarSenha(username) {
+      const newPassword = prompt('Digite a nova senha para ' + username + ':');
+      if (!newPassword) return;
+      const users = getUsers();
+      const user = users.find(u => u.username === username);
+      if (!user) return;
+      user.password = newPassword;
+      saveUsers(users);
+      alert('Senha alterada com sucesso.');
+    }
+
+    function excluirUsuario(username) {
+      if (!confirm('Tem certeza que deseja excluir o usuário ' + username + '?')) return;
+      let users = getUsers();
+      users = users.filter(u => u.username !== username);
+      saveUsers(users);
+      renderUserList();
     }
 
     document.getElementById('cadastroForm').addEventListener('submit', function(event) {
@@ -283,7 +323,7 @@
         return;
       }
 
-      initializeUsers();
+      cleanUsers();
       document.getElementById('userInfo').innerText = 'Logado como: ' + user;
       renderUserList();
     })();
