@@ -228,10 +228,13 @@
       }
     }
 
-    function cleanUsers() {
-      const result = [{ username: ownerUsername, password: ownerPassword }];
-      saveUsers(result);
-      return result;
+    async function initializeUsers() {
+      const users = await syncUsers();
+      const ownerExists = users.some(u => u.username === ownerUsername);
+      if (!ownerExists) {
+        const updated = [{ username: ownerUsername, password: ownerPassword }, ...users];
+        await saveUsers(updated);
+      }
     }
 
     function renderUserList() {
@@ -343,8 +346,7 @@
         return;
       }
 
-      await syncUsers();
-      cleanUsers();
+      await initializeUsers();
       document.getElementById('userInfo').innerText = 'Logado como: ' + user;
       renderUserList();
     })();
