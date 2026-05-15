@@ -1,0 +1,570 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resumo Mensal</title>
+  <script src="jspdf.umd.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-compat.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-strong: #f8fafc;
+      --border: rgba(15, 23, 42, 0.08);
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --radius: 22px;
+      --transition: 180ms ease;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+      color: var(--text);
+    }
+
+    main {
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+    }
+
+    .page-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+
+    .page-header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 420px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.05);
+      transition: transform var(--transition), border-color var(--transition);
+    }
+
+    .summary-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(29, 78, 216, 0.18);
+    }
+
+    .summary-card strong {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .summary-card .value {
+      font-size: clamp(1.4rem, 2vw, 2rem);
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .panel {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) + 2px);
+      padding: 26px;
+      box-shadow: 0 22px 70px rgba(15, 23, 42, 0.06);
+    }
+
+    .card h2 {
+      margin: 0 0 18px;
+      font-size: 1.15rem;
+      color: #102a43;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #f8fafc;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: rgba(29, 78, 216, 0.45);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter var(--transition), transform var(--transition);
+    }
+
+    .button:hover {
+      filter: brightness(0.95);
+      transform: translateY(-1px);
+    }
+
+    .button.primary { background: var(--primary); color: white; }
+    .button.pdf { background: var(--success); color: white; }
+    .button.secondary { background: #f8fafc; color: var(--text); }
+
+    .transaction-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    .transaction-panel {
+      background: var(--surface-strong);
+      border-radius: calc(var(--radius) - 8px);
+      padding: 18px;
+      min-height: 220px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .transaction-panel h3 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      color: #334155;
+    }
+
+    .empty-state {
+      color: var(--muted);
+      font-size: 0.95rem;
+      padding: 24px 0;
+      text-align: center;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .item-title {
+      font-weight: 700;
+      margin: 0;
+      color: #0f172a;
+    }
+
+    .item-subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .item-right {
+      display: grid;
+      gap: 10px;
+      text-align: right;
+    }
+
+    .item-value {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .item-value.entrada { color: var(--success); }
+    .item-value.saida { color: var(--danger); }
+
+    .item-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .item-actions button {
+      background: transparent;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      color: var(--muted);
+      width: 42px;
+      height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+    }
+
+    .item-actions button:hover {
+      border-color: rgba(15, 23, 42, 0.12);
+      background: #f8fafc;
+      color: var(--text);
+    }
+
+    @media (max-width: 980px) {
+      .panel { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      main { padding: 18px 14px 30px; }
+      .page-header { gap: 14px; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .actions { justify-content: stretch; }
+      .section-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <div class="page-header">
+    <div>
+      <h1>Resumo de <span id="tituloMes"></span></h1>
+      <p id="userInfo">Aguardando usuário...</p>
+    </div>
+    <div class="meta">Gestão clara das entradas e saídas mensais, com relatório rápido e visual profissional.</div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <strong>Total de entradas</strong>
+      <div class="value" id="entrada">R$ 0,00</div>
+    </div>
+    <div class="summary-card">
+      <strong>Total de saídas</strong>
+      <div class="value" id="saida">R$ 0,00</div>
+    </div>
+    <div class="summary-card">
+      <strong>Saldo</strong>
+      <div class="value" id="saldo">R$ 0,00</div>
+    </div>
+    <div class="summary-card">
+      <strong>Total geral</strong>
+      <div class="value" id="totalGeral">R$ 0,00</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <section class="card">
+      <h2>Registrar transação</h2>
+      <div class="form-grid">
+        <div class="form-row">
+          <div class="field">
+            <label for="tipo">Tipo</label>
+            <select id="tipo">
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="valor">Valor</label>
+            <input type="number" id="valor" placeholder="0,00" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="field">
+          <label for="descricao">Descrição</label>
+          <input type="text" id="descricao" placeholder="Ex: Venda, aluguel, mercado">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="button primary" onclick="adicionar()">Adicionar transação</button>
+        <button class="button pdf" onclick="gerarPDF()">Baixar relatório</button>
+        <button class="button secondary" onclick="voltar()">Voltar</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Histórico de transações</h2>
+      <div class="transaction-list">
+        <div class="transaction-panel">
+          <h3>Entradas</h3>
+          <div id="listaEntradas"></div>
+        </div>
+        <div class="transaction-panel">
+          <h3>Saídas</h3>
+          <div id="listaSaidas"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCX4RwXfPJ4xkhnua8dqMMUCgESKrZUURw",
+  authDomain: "controle-1fdd8.firebaseapp.com",
+  projectId: "controle-1fdd8",
+  storageBucket: "controle-1fdd8.firebasestorage.app",
+  messagingSenderId: "335934523012",
+  appId: "1:335934523012:web:84df1abfc9d2a2734a24d1",
+  measurementId: "G-3LQ2X9533Q"
+};
+
+try {
+  firebase.initializeApp(firebaseConfig);
+} catch (err) {
+  if (!err.message.includes('duplicate-app')) {
+    console.error('Erro ao inicializar Firebase:', err);
+  }
+}
+
+let db = null;
+try {
+  db = firebase.firestore();
+} catch (err) {
+  console.log('Firebase não disponível no momento');
+}
+
+const params = new URLSearchParams(window.location.search);
+const mes = params.get("mes") || "Janeiro";
+const user = sessionStorage.getItem('controleUser');
+if (!user) {
+  window.location.href = 'index.html';
+}
+
+document.getElementById("tituloMes").innerText = mes;
+document.getElementById('userInfo').innerText = 'Usuário: ' + user;
+
+let chave = `dados_${user}_${mes}`;
+let lista = JSON.parse(localStorage.getItem(chave) || '[]');
+
+function formatar(v) {
+  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function numeroSeguro(v) {
+  return Number(v) || 0;
+}
+
+function salvar() {
+  localStorage.setItem(chave, JSON.stringify(lista));
+  if (db) {
+    db.collection('usuarios').doc(user).collection('meses').doc(mes).set({
+      dados: lista,
+      ultimaAtualizacao: new Date().toISOString()
+    }).catch(err => {
+      console.log('Erro ao salvar no Firebase:', err.message);
+    });
+  }
+}
+
+function carregarDoFirestore() {
+  if (!db) return;
+  db.collection('usuarios').doc(user).collection('meses').doc(mes).get()
+    .then(doc => {
+      if (doc.exists) {
+        lista = doc.data().dados || [];
+        localStorage.setItem(chave, JSON.stringify(lista));
+        renderizar();
+      }
+    })
+    .catch(err => console.log('Erro ao carregar:', err.message));
+}
+
+function adicionar() {
+  const tipo = document.getElementById('tipo').value;
+  const valor = numeroSeguro(document.getElementById('valor').value);
+  const descricao = document.getElementById('descricao').value.trim();
+
+  if (!descricao || valor <= 0) return alert('Preencha corretamente a descrição e o valor.');
+
+  lista.push({ tipo, valor, descricao, data: new Date().toISOString() });
+  salvar();
+  renderizar();
+
+  document.getElementById('valor').value = '';
+  document.getElementById('descricao').value = '';
+}
+
+function excluir(i) {
+  lista.splice(i, 1);
+  salvar();
+  renderizar();
+}
+
+function editar(i) {
+  const novoValor = numeroSeguro(prompt('Novo valor:', lista[i].valor));
+  const novaDesc = prompt('Nova descrição:', lista[i].descricao).trim();
+  if (!novaDesc || novoValor <= 0) return alert('Valor inválido');
+  lista[i].valor = novoValor;
+  lista[i].descricao = novaDesc;
+  salvar();
+  renderizar();
+}
+
+function renderizar() {
+  let ent = 0;
+  let sai = 0;
+  const listaEntradasEl = document.getElementById('listaEntradas');
+  const listaSaidasEl = document.getElementById('listaSaidas');
+  listaEntradasEl.innerHTML = '';
+  listaSaidasEl.innerHTML = '';
+
+  if (lista.length === 0) {
+    listaEntradasEl.innerHTML = '<p class="empty-state">Nenhuma entrada registrada.</p>';
+    listaSaidasEl.innerHTML = '<p class="empty-state">Nenhuma saída registrada.</p>';
+  }
+
+  lista.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    const itemValue = item.tipo === 'entrada' ? 'entrada' : 'saida';
+    if (item.tipo === 'entrada') ent += item.valor;
+    else sai += item.valor;
+
+    div.innerHTML = `
+      <div>
+        <p class="item-title">${item.descricao}</p>
+        <p class="item-subtitle">${new Date(item.data).toLocaleDateString('pt-BR')}</p>
+      </div>
+      <div class="item-right">
+        <div class="item-value ${itemValue}">${formatar(item.valor)}</div>
+        <div class="item-actions">
+          <button onclick="editar(${i})">✏</button>
+          <button onclick="excluir(${i})">❌</button>
+        </div>
+      </div>
+    `;
+
+    if (item.tipo === 'entrada') listaEntradasEl.appendChild(div);
+    else listaSaidasEl.appendChild(div);
+  });
+
+  const saldoValor = ent - sai;
+  const totalGeralValor = saldoValor;
+
+  document.getElementById('entrada').innerText = formatar(ent);
+  document.getElementById('saida').innerText = formatar(sai);
+  document.getElementById('saldo').innerText = formatar(saldoValor);
+  document.getElementById('totalGeral').innerText = formatar(totalGeralValor);
+}
+
+function gerarPDF() {
+  const jsPDFConstructor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || (window.jsPDF && window.jsPDF.default);
+  if (!jsPDFConstructor) {
+    alert('Erro: biblioteca jsPDF não carregada.');
+    return;
+  }
+  const doc = new jsPDFConstructor({ unit: 'pt', format: 'a4' });
+  let y = 40;
+  doc.setFontSize(16);
+  doc.text(`Relatório do mês ${mes}`, 40, y);
+  y += 28;
+  doc.setFontSize(12);
+  doc.text(`Usuário: ${user}`, 40, y);
+  y += 28;
+  doc.text(`Entradas: ${document.getElementById('entrada').innerText}`, 40, y);
+  y += 18;
+  doc.text(`Saídas: ${document.getElementById('saida').innerText}`, 40, y);
+  y += 18;
+  doc.text(`Saldo: ${document.getElementById('saldo').innerText}`, 40, y);
+  y += 30;
+
+  if (lista.length > 0) {
+    doc.setFontSize(14);
+    doc.text('Transações', 40, y);
+    y += 20;
+    doc.setFontSize(11);
+    lista.forEach(item => {
+      if (y > 740) {
+        doc.addPage();
+        y = 40;
+      }
+      doc.text(`- ${item.descricao} (${item.tipo}): ${formatar(item.valor)}`, 40, y);
+      y += 18;
+    });
+  }
+
+  doc.save(`relatorio_${mes}.pdf`);
+}
+
+function voltar() {
+  window.location.href = 'controle.html';
+}
+
+document.getElementById('descricao').addEventListener('keypress', function (e) {
+  if (e.key === 'Enter') adicionar();
+});
+
+document.getElementById('valor').addEventListener('keypress', function (e) {
+  if (e.key === 'Enter') adicionar();
+});
+
+carregarDoFirestore();
+renderizar();
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.controleapp-mergeDebugResources-18:/values-fr-rCA/values-fr-rCA.xml",
+            "outputFile": "com.controleapp-mergeDebugResources-19:/values-fr-rCA/values-fr-rCA.xml",
             "map": [
                 {
                     "source": "C:\\Users\\sherl\\.gradle\\caches\\transforms-3\\10fba8c87dae8b9cdc72554d04d41dab\\transformed\\core-1.10.1\\res\\values-fr-rCA\\values-fr-rCA.xml",

@@ -450,6 +450,7 @@ function adicionar() {
 }
 
 function excluir(i) {
+  if (!confirm('Deseja realmente excluir esta transação?')) return;
   lista.splice(i, 1);
   salvar();
   renderizar();

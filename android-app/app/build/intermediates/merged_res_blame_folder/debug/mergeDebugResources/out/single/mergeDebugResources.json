@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.controleapp-debug-21:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.controleapp-main-23:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.controleapp-debug-21:/layout_activity_main.xml.flat",
+        "source": "com.controleapp-main-23:/layout/activity_main.xml"
+    }
+]
