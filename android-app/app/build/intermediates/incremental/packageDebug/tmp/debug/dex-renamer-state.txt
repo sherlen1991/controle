@@ -1,4 +1,4 @@
-#Fri May 15 04:21:43 BRT 2026
+#Fri May 15 05:01:39 BRT 2026
 base.2=C\:\\Users\\sherl\\OneDrive\\Documentos\\projetos\\controle\\android-app\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\7\\classes.dex
 path.2=7/classes.dex
 base.1=C\:\\Users\\sherl\\OneDrive\\Documentos\\projetos\\controle\\android-app\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
