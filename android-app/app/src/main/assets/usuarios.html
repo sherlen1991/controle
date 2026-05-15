@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Cadastro de Usuários</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1d84b5, #0b3141);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .container {
+    width: min(760px, 100%);
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    padding: 28px;
+    backdrop-filter: blur(14px);
+  }
+
+  h1 {
+    margin: 0 0 10px;
+    font-size: 28px;
+    text-align: center;
+  }
+
+  p {
+    margin: 0 0 24px;
+    text-align: center;
+    opacity: 0.9;
+  }
+
+  form {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  label {
+    font-size: 15px;
+    opacity: 0.95;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-size: 16px;
+  }
+
+  .user-list-box {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 14px;
+    padding: 20px;
+  }
+
+  .user-item {
+    background: rgba(255,255,255,0.08);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .empty {
+    text-align: center;
+    opacity: 0.85;
+    padding: 24px 0;
+  }
+
+  .button-row {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    background: #2ecc71;
+    color: #063919;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  button:hover {
+    background: #28b463;
+  }
+
+  .danger {
+    background: #e74c3c;
+    color: white;
+  }
+
+  .danger:hover {
+    background: #c0392b;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cadastro de Usuários</h1>
+    <p id="userInfo"></p>
+
+    <form id="cadastroForm">
+      <div>
+        <label for="newUsername">Nome de usuário</label>
+        <input type="text" id="newUsername" required>
+      </div>
+      <div>
+        <label for="newPassword">Senha</label>
+        <input type="password" id="newPassword" required>
+      </div>
+      <button type="submit">Cadastrar usuário</button>
+    </form>
+
+    <div class="user-list-box">
+      <div id="listaUsuarios"></div>
+      <div id="noUsers" class="empty">Nenhum usuário cadastrado.</div>
+    </div>
+
+    <div class="button-row">
+      <button onclick="abrirControle()">Ir para controle</button>
+      <button class="danger" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCX4RwXfPJ4xkhnua8dqMMUCgESKrZUURw",
+      authDomain: "controle-1fdd8.firebaseapp.com",
+      projectId: "controle-1fdd8",
+      storageBucket: "controle-1fdd8.firebasestorage.app",
+      messagingSenderId: "335934523012",
+      appId: "1:335934523012:web:84df1abfc9d2a2734a24d1",
+      measurementId: "G-3LQ2X9533Q"
+    };
+
+    try {
+      firebase.initializeApp(firebaseConfig);
+    } catch (err) {
+      if (!err.message.includes('duplicate-app')) {
+        console.error('Erro ao inicializar Firebase:', err);
+      }
+    }
+
+    let db = null;
+    try {
+      db = firebase.firestore();
+    } catch (err) {
+      console.log('Firebase não disponível no momento');
+    }
+
+    const ownerUsername = 'sherlen';
+    const ownerPassword = '98346986';
+
+    async function fetchUsersFromFirebase() {
+      if (!db) return null;
+      try {
+        const doc = await db.collection('users').doc('data').get();
+        if (doc.exists) {
+          return doc.data().users || [];
+        }
+      } catch (err) {
+        console.log('Erro ao buscar usuários no Firebase:', err.message);
+      }
+      return null;
+    }
+
+    async function syncUsers() {
+      const remote = await fetchUsersFromFirebase();
+      if (remote && Array.isArray(remote)) {
+        localStorage.setItem('controleUsers', JSON.stringify(remote));
+        return remote;
+      }
+      return getUsers();
+    }
+
+    function getUsers() {
+      try {
+        const stored = JSON.parse(localStorage.getItem('controleUsers') || '[]');
+        if (!Array.isArray(stored)) return [];
+        const normalized = stored.map((item) => {
+          if (typeof item === 'string') {
+            return { username: item, password: item === ownerUsername ? ownerPassword : '' };
+          }
+          return {
+            username: item.username || '',
+            password: item.password || ''
+          };
+        }).filter(u => u.username);
+        localStorage.setItem('controleUsers', JSON.stringify(normalized));
+        return normalized;
+      } catch {
+        return [];
+      }
+    }
+
+    async function saveUsers(users) {
+      localStorage.setItem('controleUsers', JSON.stringify(users));
+      if (db) {
+        try {
+          await db.collection('users').doc('data').set({ users: users }, { merge: true });
+        } catch (err) {
+          console.log('Erro ao salvar no Firebase:', err.message);
+        }
+      }
+    }
+
+    async function initializeUsers() {
+      const users = await syncUsers();
+      const ownerExists = users.some(u => u.username === ownerUsername);
+      if (!ownerExists) {
+        const updated = [{ username: ownerUsername, password: ownerPassword }, ...users];
+        await saveUsers(updated);
+      }
+    }
+
+    function renderUserList() {
+      const listaEl = document.getElementById('listaUsuarios');
+      const emptyEl = document.getElementById('noUsers');
+      const users = getUsers();
+
+      listaEl.innerHTML = '';
+      if (!users.length) {
+        emptyEl.style.display = 'block';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      users.forEach((user) => {
+        const item = document.createElement('div');
+        item.className = 'user-item';
+
+        const info = document.createElement('div');
+        info.innerHTML = `<strong>${user.username}</strong> <span style="opacity:0.8; margin-left:10px;">${user.username === ownerUsername ? 'Proprietário' : 'Acesso'}</span>`;
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '8px';
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Alterar senha';
+        editBtn.onclick = () => alterarSenha(user.username);
+        actions.appendChild(editBtn);
+
+        if (user.username !== ownerUsername) {
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'danger';
+          deleteBtn.textContent = 'Excluir';
+          deleteBtn.onclick = () => excluirUsuario(user.username);
+          actions.appendChild(deleteBtn);
+        }
+
+        item.appendChild(info);
+        item.appendChild(actions);
+        listaEl.appendChild(item);
+      });
+    }
+
+    function showError(message) {
+      alert(message);
+    }
+
+    function adicionarUsuario(username, password) {
+      const users = getUsers();
+      if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        showError('Esse usuário já existe. Use outro nome.');
+        return false;
+      }
+      users.push({ username, password });
+      saveUsers(users);
+      return true;
+    }
+
+    function alterarSenha(username) {
+      const newPassword = prompt('Digite a nova senha para ' + username + ':');
+      if (!newPassword) return;
+      const users = getUsers();
+      const user = users.find(u => u.username === username);
+      if (!user) return;
+      user.password = newPassword;
+      saveUsers(users);
+      alert('Senha alterada com sucesso.');
+    }
+
+    function excluirUsuario(username) {
+      if (!confirm('Tem certeza que deseja excluir o usuário ' + username + '?')) return;
+      let users = getUsers();
+      users = users.filter(u => u.username !== username);
+      saveUsers(users);
+      renderUserList();
+    }
+
+    document.getElementById('cadastroForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const username = document.getElementById('newUsername').value.trim();
+      const password = document.getElementById('newPassword').value;
+
+      if (!username || !password) {
+        showError('Preencha usuário e senha.');
+        return;
+      }
+
+      if (adicionarUsuario(username, password)) {
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newPassword').value = '';
+        renderUserList();
+      }
+    });
+
+    function abrirControle() {
+      window.location.href = 'controle.html';
+    }
+
+    function logout() {
+      sessionStorage.removeItem('controleUser');
+      window.location.href = 'index.html';
+    }
+
+    (async function() {
+      const user = sessionStorage.getItem('controleUser');
+      if (!user || user !== ownerUsername) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      await initializeUsers();
+      document.getElementById('userInfo').innerText = 'Logado como: ' + user;
+      renderUserList();
+    })();
+  </script>
+</body>
+</html>

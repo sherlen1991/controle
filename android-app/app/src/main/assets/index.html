@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Controle Financeiro</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1d84b5, #0b3141);
+      color: #fff;
+    }
+
+    .login-card {
+      width: min(420px, calc(100% - 40px));
+      padding: 36px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+      backdrop-filter: blur(14px);
+      box-sizing: border-box;
+    }
+
+    .login-card h1 {
+      margin: 0 0 22px;
+      font-size: 28px;
+      text-align: center;
+      letter-spacing: 0.6px;
+    }
+
+    .login-card label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 15px;
+      opacity: 0.95;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.40);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    .login-card form {
+      display: grid;
+      gap: 16px;
+    }
+
+    .login-card button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: #2ecc71;
+      color: #063919;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        padding: 20px 0;
+      }
+
+      .login-card {
+        width: calc(100vw - 32px);
+        padding: 32px 24px;
+      }
+
+      .login-card h1 {
+        font-size: 32px;
+        margin-bottom: 28px;
+      }
+
+      .login-card label {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+
+      .login-card input {
+        padding: 16px 18px;
+        margin-bottom: 24px;
+        font-size: 18px;
+      }
+
+      .login-card button {
+        font-size: 20px;
+        padding: 16px;
+      }
+    }
+
+    .login-card button:hover {
+      background: #28b463;
+    }
+
+    .error {
+      color: #ffb3b3;
+      font-size: 14px;
+      min-height: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <h1>Acesse seu controle</h1>
+    <div class="error" id="errorMsg"></div>
+    <form id="loginForm">
+      <label for="username">Usuário</label>
+      <input type="text" id="username" name="username" autocomplete="username" required>
+
+      <label for="password">Senha</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCX4RwXfPJ4xkhnua8dqMMUCgESKrZUURw",
+      authDomain: "controle-1fdd8.firebaseapp.com",
+      projectId: "controle-1fdd8",
+      storageBucket: "controle-1fdd8.firebasestorage.app",
+      messagingSenderId: "335934523012",
+      appId: "1:335934523012:web:84df1abfc9d2a2734a24d1",
+      measurementId: "G-3LQ2X9533Q"
+    };
+
+    try {
+      firebase.initializeApp(firebaseConfig);
+    } catch (err) {
+      if (!err.message.includes('duplicate-app')) {
+        console.error('Erro ao inicializar Firebase:', err);
+      }
+    }
+
+    let db = null;
+    try {
+      db = firebase.firestore();
+    } catch (err) {
+      console.log('Firebase não disponível no momento');
+    }
+    const ownerUsername = 'sherlen';
+    const ownerPassword = '98346986';
+
+    async function fetchUsersFromFirebase() {
+      if (!db) return null;
+      try {
+        const doc = await db.collection('users').doc('data').get();
+        if (doc.exists) {
+          return doc.data().users || [];
+        }
+      } catch (err) {
+        console.log('Erro ao buscar usuários no Firebase:', err.message);
+      }
+      return null;
+    }
+
+    async function syncUsers() {
+      const remote = await fetchUsersFromFirebase();
+      if (remote && Array.isArray(remote)) {
+        localStorage.setItem('controleUsers', JSON.stringify(remote));
+        return remote;
+      }
+      return getUsers();
+    }
+
+    function getUsers() {
+      try {
+        const stored = JSON.parse(localStorage.getItem('controleUsers') || '[]');
+        if (!Array.isArray(stored)) return [];
+        const normalized = stored.map((item) => {
+          if (typeof item === 'string') {
+            return { username: item, password: item === ownerUsername ? ownerPassword : '' };
+          }
+          return {
+            username: item.username || '',
+            password: item.password || ''
+          };
+        }).filter(u => u.username);
+        localStorage.setItem('controleUsers', JSON.stringify(normalized));
+        return normalized;
+      } catch {
+        return [];
+      }
+    }
+
+    async function saveUsers(users) {
+      localStorage.setItem('controleUsers', JSON.stringify(users));
+      if (db) {
+        try {
+          await db.collection('users').doc('data').set({ users: users }, { merge: true });
+        } catch (err) {
+          console.log('Erro ao salvar no Firebase:', err.message);
+        }
+      }
+    }
+
+    async function initializeUsers() {
+      const users = await syncUsers();
+      const ownerExists = users.some(u => u.username === ownerUsername);
+      if (!ownerExists) {
+        const updated = [...users, { username: ownerUsername, password: ownerPassword }];
+        await saveUsers(updated);
+      }
+    }
+
+    async function login(username, password) {
+      const users = await syncUsers();
+      return users.find(u => u.username === username && u.password === password);
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('errorMsg');
+
+      const user = await login(username, password);
+      if (user) {
+        sessionStorage.setItem('controleUser', user.username);
+        if (user.username === ownerUsername) {
+          window.location.href = 'usuarios.html';
+        } else {
+          window.location.href = 'controle.html';
+        }
+      } else {
+        errorMsg.textContent = 'Usuário ou senha inválidos. Tente novamente.';
+      }
+    });
+
+    (async function() {
+      await initializeUsers();
+      const currentUser = sessionStorage.getItem('controleUser');
+      if (currentUser) {
+        if (currentUser === ownerUsername) {
+          window.location.href = 'usuarios.html';
+        } else {
+          window.location.href = 'controle.html';
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
+</body>
+</html>
