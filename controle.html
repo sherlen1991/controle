@@ -133,7 +133,7 @@ header .user-bar button:hover {
 <div class="container">
 
   <div class="ano">Ano: 2026</div>
-  <button class="usuarios-btn" onclick="verUsuarios()">Ver usuários cadastrados</button>
+  <button id="usuariosBtn" class="usuarios-btn" onclick="verUsuarios()">Ver usuários cadastrados</button>
 
   <div class="meses">
 
@@ -169,12 +169,17 @@ function logout() {
 }
 
 (function() {
+  const ownerUsername = 'sherlen';
   const user = sessionStorage.getItem('controleUser');
   if (!user) {
     window.location.href = 'index.html';
     return;
   }
   document.getElementById('userDisplay').innerText = user;
+  const usuariosBtn = document.getElementById('usuariosBtn');
+  if (usuariosBtn) {
+    usuariosBtn.style.display = user === ownerUsername ? 'inline-block' : 'none';
+  }
 })();
 </script>
 

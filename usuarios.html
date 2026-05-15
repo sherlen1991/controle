@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Usuários Cadastrados</title>
+<title>Cadastro de Usuários</title>
 <style>
   body {
     margin: 0;
@@ -38,6 +38,27 @@
     opacity: 0.9;
   }
 
+  form {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  label {
+    font-size: 15px;
+    opacity: 0.95;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-size: 16px;
+  }
+
   .user-list-box {
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.22);
@@ -51,6 +72,9 @@
     margin-bottom: 12px;
     border-radius: 12px;
     font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .empty {
@@ -61,7 +85,9 @@
 
   .button-row {
     margin-top: 24px;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
   }
 
   button {
@@ -79,12 +105,33 @@
   button:hover {
     background: #28b463;
   }
+
+  .danger {
+    background: #e74c3c;
+    color: white;
+  }
+
+  .danger:hover {
+    background: #c0392b;
+  }
 </style>
 </head>
 <body>
   <div class="container">
-    <h1>Usuários Cadastrados</h1>
+    <h1>Cadastro de Usuários</h1>
     <p id="userInfo"></p>
+
+    <form id="cadastroForm">
+      <div>
+        <label for="newUsername">Nome de usuário</label>
+        <input type="text" id="newUsername" required>
+      </div>
+      <div>
+        <label for="newPassword">Senha</label>
+        <input type="password" id="newPassword" required>
+      </div>
+      <button type="submit">Cadastrar usuário</button>
+    </form>
 
     <div class="user-list-box">
       <div id="listaUsuarios"></div>
@@ -92,51 +139,120 @@
     </div>
 
     <div class="button-row">
-      <button onclick="voltar()">Voltar</button>
+      <button onclick="abrirControle()">Ir para controle</button>
+      <button class="danger" onclick="logout()">Sair</button>
     </div>
   </div>
 
   <script>
     const ownerUsername = 'sherlen';
-    const user = sessionStorage.getItem('controleUser');
-    if (!user || user !== ownerUsername) {
-      window.location.href = 'index.html';
-    }
+    const ownerPassword = '98346986';
 
-    document.getElementById('userInfo').innerText = 'Logado como: ' + user;
-
-    function carregarUsuarios() {
-      let usuarios = [];
+    function getUsers() {
       try {
         const stored = JSON.parse(localStorage.getItem('controleUsers') || '[]');
-        usuarios = Array.isArray(stored) ? stored : [];
+        if (!Array.isArray(stored)) return [];
+        const normalized = stored.map((item) => {
+          if (typeof item === 'string') {
+            return { username: item, password: item === ownerUsername ? ownerPassword : '' };
+          }
+          return {
+            username: item.username || '',
+            password: item.password || ''
+          };
+        }).filter(u => u.username);
+        localStorage.setItem('controleUsers', JSON.stringify(normalized));
+        return normalized;
       } catch {
-        usuarios = [];
+        return [];
       }
+    }
 
+    function saveUsers(users) {
+      localStorage.setItem('controleUsers', JSON.stringify(users));
+    }
+
+    function initializeUsers() {
+      const users = getUsers();
+      const ownerExists = users.some(u => u.username === ownerUsername);
+      if (!ownerExists) {
+        users.push({ username: ownerUsername, password: ownerPassword });
+        saveUsers(users);
+      }
+    }
+
+    function renderUserList() {
       const listaEl = document.getElementById('listaUsuarios');
       const emptyEl = document.getElementById('noUsers');
+      const users = getUsers();
 
       listaEl.innerHTML = '';
-      if (!usuarios.length) {
+      if (!users.length) {
         emptyEl.style.display = 'block';
         return;
       }
 
       emptyEl.style.display = 'none';
-      usuarios.forEach((nome) => {
+      users.forEach((user) => {
         const item = document.createElement('div');
         item.className = 'user-item';
-        item.textContent = nome;
+        item.innerHTML = `<span>${user.username}</span><span>${user.username === ownerUsername ? 'Proprietário' : 'Acesso'}</span>`;
         listaEl.appendChild(item);
       });
     }
 
-    function voltar() {
+    function showError(message) {
+      alert(message);
+    }
+
+    function adicionarUsuario(username, password) {
+      const users = getUsers();
+      if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        showError('Esse usuário já existe. Use outro nome.');
+        return false;
+      }
+      users.push({ username, password });
+      saveUsers(users);
+      return true;
+    }
+
+    document.getElementById('cadastroForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const username = document.getElementById('newUsername').value.trim();
+      const password = document.getElementById('newPassword').value;
+
+      if (!username || !password) {
+        showError('Preencha usuário e senha.');
+        return;
+      }
+
+      if (adicionarUsuario(username, password)) {
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newPassword').value = '';
+        renderUserList();
+      }
+    });
+
+    function abrirControle() {
       window.location.href = 'controle.html';
     }
 
-    carregarUsuarios();
+    function logout() {
+      sessionStorage.removeItem('controleUser');
+      window.location.href = 'index.html';
+    }
+
+    (function() {
+      const user = sessionStorage.getItem('controleUser');
+      if (!user || user !== ownerUsername) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      initializeUsers();
+      document.getElementById('userInfo').innerText = 'Logado como: ' + user;
+      renderUserList();
+    })();
   </script>
 </body>
 </html>

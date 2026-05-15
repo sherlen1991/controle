@@ -112,19 +112,38 @@
 
   <script>
     const ownerUsername = 'sherlen';
-    const validUsername = ownerUsername;
-    const validPassword = '98346986';
+    const ownerPassword = '98346986';
 
-    function initializeUsers() {
+    function getUsers() {
       try {
         const stored = JSON.parse(localStorage.getItem('controleUsers') || '[]');
-        const users = Array.isArray(stored) ? stored : [];
-        if (!users.includes(ownerUsername)) {
-          users.push(ownerUsername);
-          localStorage.setItem('controleUsers', JSON.stringify(users));
-        }
+        if (!Array.isArray(stored)) return [];
+        const normalized = stored.map((item) => {
+          if (typeof item === 'string') {
+            return { username: item, password: item === ownerUsername ? ownerPassword : '' };
+          }
+          return {
+            username: item.username || '',
+            password: item.password || ''
+          };
+        }).filter(u => u.username);
+        localStorage.setItem('controleUsers', JSON.stringify(normalized));
+        return normalized;
       } catch {
-        localStorage.setItem('controleUsers', JSON.stringify([ownerUsername]));
+        return [];
+      }
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem('controleUsers', JSON.stringify(users));
+    }
+
+    function initializeUsers() {
+      const users = getUsers();
+      const ownerExists = users.some(u => u.username === ownerUsername);
+      if (!ownerExists) {
+        users.push({ username: ownerUsername, password: ownerPassword });
+        saveUsers(users);
       }
     }
 
@@ -135,17 +154,28 @@
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
       const errorMsg = document.getElementById('errorMsg');
+      const users = getUsers();
+      const user = users.find(u => u.username === username && u.password === password);
 
-      if (username === validUsername && password === validPassword) {
-        sessionStorage.setItem('controleUser', validUsername);
-        window.location.href = 'controle.html';
+      if (user) {
+        sessionStorage.setItem('controleUser', user.username);
+        if (user.username === ownerUsername) {
+          window.location.href = 'usuarios.html';
+        } else {
+          window.location.href = 'controle.html';
+        }
       } else {
         errorMsg.textContent = 'Usuário ou senha inválidos. Tente novamente.';
       }
     });
 
-    if (sessionStorage.getItem('controleUser')) {
-      window.location.href = 'controle.html';
+    const currentUser = sessionStorage.getItem('controleUser');
+    if (currentUser) {
+      if (currentUser === ownerUsername) {
+        window.location.href = 'usuarios.html';
+      } else {
+        window.location.href = 'controle.html';
+      }
     }
   </script>
 </body>
